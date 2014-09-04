@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Usage : AutoScale4BKS3.sh <SourceDir> <DestBacketName>
+# Usage : AutoScale4BKS3.sh <SourceDir> <DestBacketName> B|R
 
 InstanceID=`curl http://169.254.169.254/latest/meta-data/instance-id`
 SrcDir=$1
@@ -11,6 +11,19 @@ Backup2S3(){
 		--region ap-northeast-1 \
 		${SrcDir} \
 		s3://${Backet} \
+		--delete
+	if [ $? -eq 0 ] ; then
+		return 0
+	else
+		return 2
+	fi
+}
+
+RestoreS3() {
+	aws s3 sync \
+		--region ap-northeast-1 \
+		s3://${Backet} \
+		${SrcDir} \
 		--delete
 	if [ $? -eq 0 ] ; then
 		return 0
@@ -57,9 +70,21 @@ if [ $? -ne 0 ] ;then
 	exit 2
 fi
 
-## S3にsync
-Backup2S3 $1 $2
-if [ $? -ne 0 ] ;then
-	exit 2
-fi
+case $3 in
+	"B" ) ## S3にsync
+		Backup2S3
+		if [ $? -ne 0 ] ;then
+			exit 2
+		fi
+		;;
+	"R" ) ## S3からリストア
+		RestoreS3
+		if [ $? -ne 0 ] ;then
+			exit 2
+		fi
+		;;
+	* ) ## オプションの指定が間違っている場合
+		echo "B or R"
+		;;
+esac
 exit 0
