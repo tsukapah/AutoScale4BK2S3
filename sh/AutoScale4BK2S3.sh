@@ -3,6 +3,8 @@
 # Usage : AutoScale4BKS3.sh <SourceDir> <DestBacketName>
 
 InstanceID=`curl http://169.254.169.254/latest/meta-data/instance-id`
+SrcDir=$1
+Backet=$2
 
 Backup2S3(){
 	aws s3 sync \
@@ -18,9 +20,6 @@ Backup2S3(){
 }
 
 CheckSrcDst(){
-	SrcDir=$1
-	Backet=$2
-
 	if [ ! -d ${SrcDir} ] ; then
 		return 2
 	fi
@@ -59,7 +58,7 @@ if [ $? -ne 0 ] ;then
 fi
 
 ## S3にsync
-SetEIP $1 $2
+Backup2S3 $1 $2
 if [ $? -ne 0 ] ;then
 	exit 2
 fi
