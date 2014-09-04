@@ -7,7 +7,6 @@ SrcDir=$1
 Backet=$2
 
 Backup2S3(){
-
 	aws s3 sync \
 		--region ap-northeast-1 \
 		${SrcDir} \
