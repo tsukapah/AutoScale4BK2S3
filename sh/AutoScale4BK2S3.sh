@@ -5,6 +5,7 @@
 InstanceID=`curl http://169.254.169.254/latest/meta-data/instance-id`
 SrcDir=$1
 Backet=$2
+flgfile=/tmp/AutoScale4BKS3.tmp
 
 Backup2S3(){
 	aws s3 sync \
@@ -72,14 +73,19 @@ fi
 
 case $3 in
 	"B" ) ## S3にsync
-		Backup2S3
-		if [ $? -ne 0 ] ;then
-			exit 2
+		if [ ! -f ${flgfile} ] ;then
+			Backup2S3
+			if [ $? -ne 0 ] ;then
+				exit 2
+			fi
 		fi
 		;;
 	"R" ) ## S3からリストア
+		date > ${flgfile}
 		RestoreS3
-		if [ $? -ne 0 ] ;then
+		rc=$?
+		rm -f ${flgfile}
+		if [ ${rc} -ne 0 ] ;then
 			exit 2
 		fi
 		;;
